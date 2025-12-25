@@ -1,0 +1,35 @@
+"""Pydantic schemas for API request/response models."""
+
+from pydantic import BaseModel, HttpUrl, Field
+
+
+class CaptureRequest(BaseModel):
+    """Request model for screenshot capture endpoint."""
+    
+    url: HttpUrl = Field(..., description="The URL to capture a screenshot of")
+    proxy: str | None = Field(None, description="Optional proxy to use for the capture")
+
+
+class CaptureResponse(BaseModel):
+    """Response model for screenshot capture endpoint."""
+    
+    screenshot_url: str = Field(..., description="The URL of the captured screenshot from ScreenshotOne")
+    url: str = Field(..., description="The original URL that was captured")
+
+
+class CaptureUploadRequest(BaseModel):
+    """Request model for screenshot capture and upload endpoint."""
+    
+    url: HttpUrl = Field(..., description="The URL to capture a screenshot of")
+    proxy: str | None = Field(None, description="Optional proxy to use for the capture")
+    folder: str | None = Field(None, description="Optional Cloudinary folder path (e.g., 'screenshots/2024/12')")
+
+
+class CaptureUploadResponse(BaseModel):
+    """Response model for screenshot capture and upload endpoint."""
+    
+    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot in Cloudinary")
+    screenshot_url: str = Field(..., description="The URL of the captured screenshot from ScreenshotOne")
+    url: str = Field(..., description="The original URL that was captured")
+    folder: str | None = Field(None, description="The Cloudinary folder where the file was saved")
+
