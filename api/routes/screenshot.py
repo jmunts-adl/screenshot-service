@@ -2,9 +2,16 @@
 
 import logging
 from fastapi import APIRouter, HTTPException, status, Depends
-from api.models.schemas import CaptureRequest, CaptureResponse, CaptureUploadRequest, CaptureUploadResponse
-from api.services.screenshot_service import capture_screenshot_url
-from api.services.upload_service import capture_and_upload_screenshot
+from api.models.schemas import (
+    CaptureRequest, 
+    CaptureResponse, 
+    CaptureUploadRequest, 
+    CaptureUploadResponse,
+    ZenRowsCaptureRequest,
+    ZenRowsCaptureResponse
+)
+from api.services.screenshot_service import capture_screenshot_url, capture_and_upload_screenshot
+from api.services.zenrows_service import capture_and_upload_with_zenrows
 from api.dependencies.auth import verify_token
 from api.config import CLOUDINARY_FOLDER
 
@@ -144,5 +151,70 @@ async def capture_and_upload_screenshot_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to capture and upload screenshot: {str(e)}"
+        )
+
+
+@router.post(
+    "/zenrows",
+    response_model=ZenRowsCaptureResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Capture and upload a screenshot using ZenRows",
+    description="Capture a screenshot of the provided URL using ZenRows API and upload it to Cloudinary. "
+                "Returns the Cloudinary URL. "
+                "Uses JavaScript rendering and premium proxy. "
+                "Requires Bearer token authentication via Authorization header.",
+    response_description="The Cloudinary URL of the uploaded screenshot"
+)
+async def capture_with_zenrows_endpoint(
+    request: ZenRowsCaptureRequest,
+    _: None = Depends(verify_token)
+) -> ZenRowsCaptureResponse:
+    """
+    Capture a screenshot using ZenRows API and upload it to Cloudinary.
+    
+    Requires Bearer token authentication. Include the token in the Authorization header:
+    `Authorization: Bearer <your-token>`
+    
+    Args:
+        request: ZenRows capture request containing URL, optional wait_for CSS selector, and optional folder
+        
+    Returns:
+        ZenRowsCaptureResponse with Cloudinary URL, original URL, and folder
+        
+    Raises:
+        HTTPException: 401 if authentication fails, 500 if capture or upload fails
+    """
+    try:
+        # Convert HttpUrl to string for the capture function
+        url_str = str(request.url)
+        
+        # Determine folder to use
+        folder = request.folder or CLOUDINARY_FOLDER or None
+        
+        uploaded_url = capture_and_upload_with_zenrows(
+            url=url_str,
+            wait_for=request.wait_for,
+            folder=folder
+        )
+        
+        logger.info(f"Successfully captured and uploaded screenshot with ZenRows for URL: {url_str}")
+        
+        return ZenRowsCaptureResponse(
+            uploaded_url=uploaded_url,
+            url=url_str,
+            folder=folder
+        )
+        
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Configuration error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Failed to capture and upload screenshot with ZenRows: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to capture and upload screenshot with ZenRows: {str(e)}"
         )
 
