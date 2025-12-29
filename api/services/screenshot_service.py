@@ -87,3 +87,35 @@ def capture_and_upload_screenshot(
     
     return screenshot_url, uploaded_url
 
+
+def upload_screenshotone_url_to_cloudinary(
+    screenshot_url: str,
+    folder: Optional[str] = None
+) -> str:
+    """
+    Upload a ScreenshotOne URL to Cloudinary.
+    
+    Args:
+        screenshot_url: The ScreenshotOne cache URL to upload
+        folder: Optional Cloudinary folder path. If not provided, uses CLOUDINARY_FOLDER env var.
+        
+    Returns:
+        The Cloudinary URL of the uploaded screenshot
+        
+    Raises:
+        ValueError: If Cloudinary credentials are not found
+        requests.exceptions.RequestException: If download fails
+        Exception: If upload fails
+    """
+    logger.info(f'Uploading ScreenshotOne URL to Cloudinary: {screenshot_url}')
+    
+    uploaded_url = upload_screenshot_from_url(
+        image_url=screenshot_url,
+        folder=folder,
+        default_folder=CLOUDINARY_FOLDER
+    )
+    
+    logger.info(f'ScreenshotOne URL uploaded to Cloudinary: {uploaded_url}')
+    
+    return uploaded_url
+

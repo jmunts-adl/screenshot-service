@@ -8,9 +8,15 @@ from api.models.schemas import (
     CaptureUploadRequest, 
     CaptureUploadResponse,
     ZenRowsCaptureRequest,
-    ZenRowsCaptureResponse
+    ZenRowsCaptureResponse,
+    UploadScreenshotOneRequest,
+    UploadScreenshotOneResponse
 )
-from api.services.screenshot_service import capture_screenshot_url, capture_and_upload_screenshot
+from api.services.screenshot_service import (
+    capture_screenshot_url, 
+    capture_and_upload_screenshot,
+    upload_screenshotone_url_to_cloudinary
+)
 from api.services.zenrows_service import capture_and_upload_with_zenrows
 from api.dependencies.auth import verify_token
 from api.config import CLOUDINARY_FOLDER
@@ -151,6 +157,70 @@ async def capture_and_upload_screenshot_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to capture and upload screenshot: {str(e)}"
+        )
+
+
+@router.post(
+    "/upload",
+    response_model=UploadScreenshotOneResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Upload a ScreenshotOne URL to Cloudinary",
+    description="Upload an existing ScreenshotOne cache URL to Cloudinary. "
+                "Downloads the image from the ScreenshotOne URL and uploads it to Cloudinary. "
+                "Returns the Cloudinary URL. "
+                "Requires Bearer token authentication via Authorization header.",
+    response_description="The Cloudinary URL of the uploaded screenshot"
+)
+async def upload_screenshotone_url_endpoint(
+    request: UploadScreenshotOneRequest,
+    _: None = Depends(verify_token)
+) -> UploadScreenshotOneResponse:
+    """
+    Upload a ScreenshotOne URL to Cloudinary.
+    
+    Requires Bearer token authentication. Include the token in the Authorization header:
+    `Authorization: Bearer <your-token>`
+    
+    Args:
+        request: Upload request containing ScreenshotOne URL and optional folder
+        
+    Returns:
+        UploadScreenshotOneResponse with Cloudinary URL, original ScreenshotOne URL, and folder
+        
+    Raises:
+        HTTPException: 401 if authentication fails, 500 if upload fails
+    """
+    try:
+        # Convert HttpUrl to string for the upload function
+        screenshot_url_str = str(request.screenshot_url)
+        
+        # Determine folder to use
+        folder = request.folder or CLOUDINARY_FOLDER or None
+        
+        uploaded_url = upload_screenshotone_url_to_cloudinary(
+            screenshot_url=screenshot_url_str,
+            folder=folder
+        )
+        
+        logger.info(f"Successfully uploaded ScreenshotOne URL to Cloudinary: {screenshot_url_str}")
+        
+        return UploadScreenshotOneResponse(
+            uploaded_url=uploaded_url,
+            screenshot_url=screenshot_url_str,
+            folder=folder
+        )
+        
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Configuration error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Failed to upload ScreenshotOne URL to Cloudinary: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload ScreenshotOne URL to Cloudinary: {str(e)}"
         )
 
 
