@@ -39,6 +39,7 @@ class ZenRowsCaptureRequest(BaseModel):
     
     url: HttpUrl = Field(..., description="The URL to capture a screenshot of")
     wait_for: str | None = Field(None, description="Optional CSS selector to wait for before capturing")
+    wait: int | None = Field(None, description="Optional wait time in milliseconds before capturing")
     folder: str | None = Field(None, description="Optional Cloudinary folder path (e.g., 'screenshots/2024/12')")
 
 

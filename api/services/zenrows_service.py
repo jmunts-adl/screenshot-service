@@ -15,14 +15,16 @@ logger = logging.getLogger(__name__)
 
 def capture_screenshot_with_zenrows(
     url: str,
-    wait_for: Optional[str] = None
+    wait_for: Optional[str] = None,
+    wait: Optional[int] = None
 ) -> bytes:
     """
     Capture a screenshot using ZenRows API.
     
     Args:
         url: The URL to capture a screenshot of
-        wait_for: Optional CSS selector to wait for before capturing
+        wait_for: Optional CSS selector to wait for before capturing (overrides wait if provided)
+        wait: Optional wait time in milliseconds before capturing (used only if wait_for is not provided)
         
     Returns:
         The image data as bytes
@@ -46,8 +48,11 @@ def capture_screenshot_with_zenrows(
         'custom_headers': 'true',
     }
     
+    # If wait_for is provided, it overrides wait
     if wait_for:
         params['wait_for'] = wait_for
+    elif wait is not None:
+        params['wait'] = wait
     
     headers = {
         "Referer": "https://www.google.com"
@@ -103,6 +108,7 @@ def capture_screenshot_with_zenrows(
 def capture_and_upload_with_zenrows(
     url: str,
     wait_for: Optional[str] = None,
+    wait: Optional[int] = None,
     folder: Optional[str] = None
 ) -> str:
     """
@@ -110,7 +116,8 @@ def capture_and_upload_with_zenrows(
     
     Args:
         url: The URL to capture a screenshot of
-        wait_for: Optional CSS selector to wait for before capturing
+        wait_for: Optional CSS selector to wait for before capturing (overrides wait if provided)
+        wait: Optional wait time in milliseconds before capturing (used only if wait_for is not provided)
         folder: Optional Cloudinary folder path. If not provided, uses CLOUDINARY_FOLDER env var.
         
     Returns:
@@ -123,7 +130,7 @@ def capture_and_upload_with_zenrows(
     """
     # Step 1: Capture screenshot and get image bytes
     logger.info(f'Capturing screenshot with ZenRows for URL: {url}')
-    image_bytes = capture_screenshot_with_zenrows(url=url, wait_for=wait_for)
+    image_bytes = capture_screenshot_with_zenrows(url=url, wait_for=wait_for, wait=wait)
     
     # Step 2: Upload to Cloudinary
     # Use folder as-is (endpoint already handles: request.folder or CLOUDINARY_FOLDER or None)

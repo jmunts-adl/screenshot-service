@@ -233,6 +233,7 @@ async def upload_screenshotone_url_endpoint(
     description="Capture a screenshot of the provided URL using ZenRows API and upload it to Cloudinary. "
                 "Returns the Cloudinary URL. "
                 "Uses JavaScript rendering and premium proxy. "
+                "Supports optional wait_for CSS selector (overrides wait) or wait time in milliseconds. "
                 "Requires Bearer token authentication via Authorization header.",
     response_description="The Cloudinary URL of the uploaded screenshot"
 )
@@ -247,7 +248,7 @@ async def capture_with_zenrows_endpoint(
     `Authorization: Bearer <your-token>`
     
     Args:
-        request: ZenRows capture request containing URL, optional wait_for CSS selector, and optional folder
+        request: ZenRows capture request containing URL, optional wait_for CSS selector, optional wait time, and optional folder
         
     Returns:
         ZenRowsCaptureResponse with Cloudinary URL, original URL, and folder
@@ -265,6 +266,7 @@ async def capture_with_zenrows_endpoint(
         uploaded_url = capture_and_upload_with_zenrows(
             url=url_str,
             wait_for=request.wait_for,
+            wait=request.wait,
             folder=folder
         )
         
