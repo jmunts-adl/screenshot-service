@@ -1,6 +1,7 @@
 """Screenshot capture API routes."""
 
 import logging
+import requests
 from fastapi import APIRouter, HTTPException, status, Depends
 from api.models.schemas import (
     CaptureRequest, 
@@ -280,6 +281,12 @@ async def capture_with_zenrows_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Configuration error: {str(e)}"
+        )
+    except requests.exceptions.RequestException as e:
+        logger.error(f"ZenRows API error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"ZenRows API error: {str(e)}"
         )
     except Exception as e:
         logger.error(f"Failed to capture and upload screenshot with ZenRows: {e}")

@@ -55,13 +55,20 @@ def capture_screenshot_with_zenrows(
     
     logger.info(f'Capturing screenshot with ZenRows for URL: {url}')
     
-    response = requests.get('https://api.zenrows.com/v1/', params=params, headers=headers)
+    try:
+        response = requests.get('https://api.zenrows.com/v1/', params=params, headers=headers, timeout=60)
+    except requests.exceptions.RequestException as e:
+        logger.error(f"ZenRows API request exception: {e}")
+        raise requests.exceptions.RequestException(
+            f"ZenRows API request failed: {str(e)}"
+        ) from e
     
     # Check response status
     if response.status_code != 200:
-        logger.error(f"ZenRows API returned status code {response.status_code}")
+        error_message = response.text[:500] if response.text else "No error message provided"
+        logger.error(f"ZenRows API returned status code {response.status_code}: {error_message}")
         raise requests.exceptions.RequestException(
-            f"ZenRows API request failed with status {response.status_code}: {response.text[:500]}"
+            f"ZenRows API request failed with status {response.status_code}: {error_message}"
         )
     
     # Validate that response is an image
