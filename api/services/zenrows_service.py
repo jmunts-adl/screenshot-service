@@ -43,14 +43,19 @@ def capture_screenshot_with_zenrows(
         'js_render': 'true',
         'premium_proxy': 'true',
         'screenshot': 'true',
+        'custom_headers': 'true',
     }
     
     if wait_for:
         params['wait_for'] = wait_for
     
+    headers = {
+        "Referer": "https://www.google.com"
+    }
+    
     logger.info(f'Capturing screenshot with ZenRows for URL: {url}')
     
-    response = requests.get('https://api.zenrows.com/v1/', params=params)
+    response = requests.get('https://api.zenrows.com/v1/', params=params, headers=headers)
     
     # Check response status
     if response.status_code != 200:
