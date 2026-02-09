@@ -22,16 +22,16 @@ class CaptureUploadRequest(BaseModel):
     
     url: HttpUrl = Field(..., description="The URL to capture a screenshot of")
     proxy: str | None = Field(None, description="Optional proxy to use for the capture")
-    folder: str | None = Field(None, description="Optional Cloudinary folder path (e.g., 'screenshots/2024/12')")
+    folder: str | None = Field(None, description="Optional folder path for the uploaded file (e.g., 'screenshots/2024/12')")
 
 
 class CaptureUploadResponse(BaseModel):
     """Response model for screenshot capture and upload endpoint."""
     
-    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot in Cloudinary")
+    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot")
     screenshot_url: str = Field(..., description="The URL of the captured screenshot from ScreenshotOne")
     url: str = Field(..., description="The original URL that was captured")
-    folder: str | None = Field(None, description="The Cloudinary folder where the file was saved")
+    folder: str | None = Field(None, description="The folder/path where the file was saved")
 
 
 class ZenRowsCaptureRequest(BaseModel):
@@ -40,28 +40,28 @@ class ZenRowsCaptureRequest(BaseModel):
     url: HttpUrl = Field(..., description="The URL to capture a screenshot of")
     wait_for: str | None = Field(None, description="Optional CSS selector to wait for before capturing")
     wait: int | None = Field(None, description="Optional wait time in milliseconds before capturing")
-    folder: str | None = Field(None, description="Optional Cloudinary folder path (e.g., 'screenshots/2024/12')")
+    folder: str | None = Field(None, description="Optional folder path for the uploaded file (e.g., 'screenshots/2024/12')")
 
 
 class ZenRowsCaptureResponse(BaseModel):
     """Response model for ZenRows screenshot capture and upload endpoint."""
     
-    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot in Cloudinary")
+    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot")
     url: str = Field(..., description="The original URL that was captured")
-    folder: str | None = Field(None, description="The Cloudinary folder where the file was saved")
+    folder: str | None = Field(None, description="The folder/path where the file was saved")
 
 
 class UploadScreenshotOneRequest(BaseModel):
-    """Request model for uploading a ScreenshotOne URL to Cloudinary."""
+    """Request model for uploading a ScreenshotOne URL to configured storage."""
     
     screenshot_url: HttpUrl = Field(..., description="The ScreenshotOne URL to upload")
-    folder: str | None = Field(None, description="Optional Cloudinary folder path (e.g., 'screenshots/2024/12')")
+    folder: str | None = Field(None, description="Optional folder path for the uploaded file (e.g., 'screenshots/2024/12')")
 
 
 class UploadScreenshotOneResponse(BaseModel):
-    """Response model for uploading a ScreenshotOne URL to Cloudinary."""
+    """Response model for uploading a ScreenshotOne URL to configured storage."""
     
-    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot in Cloudinary")
+    uploaded_url: str = Field(..., description="The URL of the uploaded screenshot")
     screenshot_url: str = Field(..., description="The original ScreenshotOne URL that was uploaded")
-    folder: str | None = Field(None, description="The Cloudinary folder where the file was saved")
+    folder: str | None = Field(None, description="The folder/path where the file was saved")
 

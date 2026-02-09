@@ -1,12 +1,12 @@
 # Screenshot Service
 
-A standalone microservice for capturing screenshots using ScreenshotOne API and uploading them to Cloudinary.
+A standalone microservice for capturing screenshots using ScreenshotOne API and uploading them to configured storage (Cloudinary or AWS S3 + CloudFront).
 
 ## Features
 
 - Capture screenshots of URLs using ScreenshotOne API
 - Automatic retry logic with proxy fallback (basic proxy → advanced proxy)
-- Upload screenshots to Cloudinary
+- Upload screenshots to Cloudinary or AWS (S3 with CloudFront delivery)
 - Bearer token authentication
 - RESTful API with FastAPI
 
@@ -17,27 +17,27 @@ A standalone microservice for capturing screenshots using ScreenshotOne API and 
 pip install -r requirements.txt
 ```
 
-2. Create a `.env` file with the following variables:
+2. Create a `.env` file (see `.env.example`). Storage is chosen via `STORAGE_PROVIDER`:
+
+**Option A: Cloudinary (default)**  
+Set `STORAGE_PROVIDER=cloudinary` or omit it. Configure:
 ```env
-# Server configuration
-HOST=0.0.0.0
-PORT=8000
-
-# Authentication
-API_TOKEN=your-secret-token-here
-API_TOKEN_REQUIRED=true
-
-# ScreenshotOne API
-SCREENSHOTONE_ACCESS_KEY=your-access-key
-SCREENSHOTONE_PROXY=your-basic-proxy-url
-WEB_UNLOCKER_PROXY=your-advanced-proxy-url
-
-# Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 CLOUDINARY_FOLDER=screenshots
 ```
+
+**Option B: AWS (S3 + CloudFront)**  
+Set `STORAGE_PROVIDER=aws`. Uploads go to S3; returned URLs are CloudFront. Configure:
+```env
+STORAGE_PROVIDER=aws
+AWS_REGION=eu-west-1
+AWS_S3_BUCKET=your-bucket
+AWS_CLOUDFRONT_DOMAIN=your-distribution.cloudfront.net
+# Optional: AWS_S3_PREFIX=screenshots
+```
+Use IAM credentials (env `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` or instance role). Ensure the bucket is the CloudFront origin (OAI/OAC recommended).
 
 ## Running the Service
 
@@ -74,21 +74,21 @@ Capture a screenshot and return the ScreenshotOne URL.
 
 ### POST /capture/and-upload
 
-Capture a screenshot and upload it to Cloudinary.
+Capture a screenshot and upload it to configured storage (Cloudinary or AWS). `uploaded_url` is a Cloudinary URL or CloudFront URL depending on `STORAGE_PROVIDER`.
 
 **Request:**
 ```json
 {
   "url": "https://example.com",
   "proxy": "optional-proxy-url",
-  "folder": "optional-cloudinary-folder"
+  "folder": "optional-folder-path"
 }
 ```
 
 **Response:**
 ```json
 {
-  "uploaded_url": "https://res.cloudinary.com/...",
+  "uploaded_url": "https://res.cloudinary.com/... or https://xxx.cloudfront.net/...",
   "screenshot_url": "https://api.screenshotone.com/...",
   "url": "https://example.com",
   "folder": "screenshots"

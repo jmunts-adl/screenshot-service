@@ -97,17 +97,17 @@ async def capture_screenshot(
     status_code=status.HTTP_200_OK,
     summary="Capture and upload a screenshot",
     description="Capture a screenshot of the provided URL using ScreenshotOne API, "
-                "download it, and upload it to Cloudinary. Returns the Cloudinary URL. "
+                "download it, and upload it to configured storage (Cloudinary or AWS). Returns the uploaded file URL. "
                 "Uses retry logic: attempts with basic proxy first, then falls back to advanced proxy if needed. "
                 "Requires Bearer token authentication via Authorization header.",
-    response_description="The Cloudinary URL of the uploaded screenshot"
+    response_description="The URL of the uploaded screenshot"
 )
 async def capture_and_upload_screenshot_endpoint(
     request: CaptureUploadRequest,
     _: None = Depends(verify_token)
 ) -> CaptureUploadResponse:
     """
-    Capture a screenshot and upload it to Cloudinary.
+    Capture a screenshot and upload it to configured storage.
     
     Requires Bearer token authentication. Include the token in the Authorization header:
     `Authorization: Bearer <your-token>`
@@ -116,7 +116,7 @@ async def capture_and_upload_screenshot_endpoint(
         request: Capture and upload request containing URL, optional proxy, and optional folder
         
     Returns:
-        CaptureUploadResponse with Cloudinary URL, ScreenshotOne URL, original URL, and folder
+        CaptureUploadResponse with uploaded URL, ScreenshotOne URL, original URL, and folder
         
     Raises:
         HTTPException: 401 if authentication fails, 500 if capture or upload fails
@@ -165,19 +165,19 @@ async def capture_and_upload_screenshot_endpoint(
     "/upload",
     response_model=UploadScreenshotOneResponse,
     status_code=status.HTTP_200_OK,
-    summary="Upload a ScreenshotOne URL to Cloudinary",
-    description="Upload an existing ScreenshotOne cache URL to Cloudinary. "
-                "Downloads the image from the ScreenshotOne URL and uploads it to Cloudinary. "
-                "Returns the Cloudinary URL. "
+    summary="Upload a ScreenshotOne URL to storage",
+    description="Upload an existing ScreenshotOne cache URL to configured storage. "
+                "Downloads the image from the ScreenshotOne URL and uploads it. "
+                "Returns the uploaded file URL. "
                 "Requires Bearer token authentication via Authorization header.",
-    response_description="The Cloudinary URL of the uploaded screenshot"
+    response_description="The URL of the uploaded screenshot"
 )
 async def upload_screenshotone_url_endpoint(
     request: UploadScreenshotOneRequest,
     _: None = Depends(verify_token)
 ) -> UploadScreenshotOneResponse:
     """
-    Upload a ScreenshotOne URL to Cloudinary.
+    Upload a ScreenshotOne URL to configured storage.
     
     Requires Bearer token authentication. Include the token in the Authorization header:
     `Authorization: Bearer <your-token>`
@@ -186,7 +186,7 @@ async def upload_screenshotone_url_endpoint(
         request: Upload request containing ScreenshotOne URL and optional folder
         
     Returns:
-        UploadScreenshotOneResponse with Cloudinary URL, original ScreenshotOne URL, and folder
+        UploadScreenshotOneResponse with uploaded URL, original ScreenshotOne URL, and folder
         
     Raises:
         HTTPException: 401 if authentication fails, 500 if upload fails
@@ -203,7 +203,7 @@ async def upload_screenshotone_url_endpoint(
             folder=folder
         )
         
-        logger.info(f"Successfully uploaded ScreenshotOne URL to Cloudinary: {screenshot_url_str}")
+        logger.info(f"Successfully uploaded ScreenshotOne URL: {screenshot_url_str}")
         
         return UploadScreenshotOneResponse(
             uploaded_url=uploaded_url,
@@ -218,10 +218,10 @@ async def upload_screenshotone_url_endpoint(
             detail=f"Configuration error: {str(e)}"
         )
     except Exception as e:
-        logger.error(f"Failed to upload ScreenshotOne URL to Cloudinary: {e}")
+        logger.error(f"Failed to upload ScreenshotOne URL: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload ScreenshotOne URL to Cloudinary: {str(e)}"
+            detail=f"Failed to upload ScreenshotOne URL: {str(e)}"
         )
 
 
@@ -230,19 +230,19 @@ async def upload_screenshotone_url_endpoint(
     response_model=ZenRowsCaptureResponse,
     status_code=status.HTTP_200_OK,
     summary="Capture and upload a screenshot using ZenRows",
-    description="Capture a screenshot of the provided URL using ZenRows API and upload it to Cloudinary. "
-                "Returns the Cloudinary URL. "
+    description="Capture a screenshot of the provided URL using ZenRows API and upload it to configured storage. "
+                "Returns the uploaded file URL. "
                 "Uses JavaScript rendering and premium proxy. "
                 "Supports optional wait_for CSS selector (overrides wait) or wait time in milliseconds. "
                 "Requires Bearer token authentication via Authorization header.",
-    response_description="The Cloudinary URL of the uploaded screenshot"
+    response_description="The URL of the uploaded screenshot"
 )
 async def capture_with_zenrows_endpoint(
     request: ZenRowsCaptureRequest,
     _: None = Depends(verify_token)
 ) -> ZenRowsCaptureResponse:
     """
-    Capture a screenshot using ZenRows API and upload it to Cloudinary.
+    Capture a screenshot using ZenRows API and upload it to configured storage.
     
     Requires Bearer token authentication. Include the token in the Authorization header:
     `Authorization: Bearer <your-token>`
@@ -251,7 +251,7 @@ async def capture_with_zenrows_endpoint(
         request: ZenRows capture request containing URL, optional wait_for CSS selector, optional wait time, and optional folder
         
     Returns:
-        ZenRowsCaptureResponse with Cloudinary URL, original URL, and folder
+        ZenRowsCaptureResponse with uploaded URL, original URL, and folder
         
     Raises:
         HTTPException: 401 if authentication fails, 500 if capture or upload fails
